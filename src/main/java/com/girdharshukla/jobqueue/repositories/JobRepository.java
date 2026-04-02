@@ -14,7 +14,7 @@ public class JobRepository {
     }
 
     public void insert(Job job){
-        String sql = "INSERT INTO jobs (id, type, payload, status, max_attempts) VALUES (?, ?, ?::jsonb, ?, ?, ?)";
-        jdbcTemplate.update(sql, job.getId(), job.getType(), job.getStatus().name(), job.getMaxAttempt());        
+        String sql = "INSERT INTO jobs (id, type, payload, status, max_attempts) VALUES (?, ?, ?::jsonb, ?, ?)";
+        jdbcTemplate.update(sql, job.getId(), job.getType(), job.getPayload().toString(), job.getStatus().name(), job.getMaxAttempt());        
     }
 }
