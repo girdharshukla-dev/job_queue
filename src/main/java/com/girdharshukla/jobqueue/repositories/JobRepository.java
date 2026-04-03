@@ -25,6 +25,7 @@ public class JobRepository {
     }
     
     public Job findById(UUID id){
+        System.out.println("Inside JobRepository for id: " + id);
         String sql = "SELECT * FROM jobs WHERE id = ?";
         Job job = jdbcTemplate.queryForObject(sql, (rs, rowNum)->{
             Job jobb = new Job();
@@ -36,11 +37,13 @@ public class JobRepository {
                 e.printStackTrace();
             }
             jobb.setAttempt(rs.getInt("attempt"));
-            jobb.setMaxAttempt(rs.getInt("max_attempt"));
+            jobb.setMaxAttempt(rs.getInt("max_attempts"));
             jobb.setStatus(JobStatus.valueOf(rs.getString("status")));
 
             return jobb;
-        });
+        }, id);
+
+        System.out.println("Found job with id as: " + job.getId());
 
         return job;
     }
