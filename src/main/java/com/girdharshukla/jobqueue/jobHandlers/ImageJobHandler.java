@@ -12,7 +12,6 @@ public class ImageJobHandler implements JobHandler {
     @Override
     public void execute(JsonNode payload) throws Exception {
         int imageId = payload.get("imageId").asInt();
-        System.out.println("Inside image jobHandler with imageId as: " + imageId);
         Thread.sleep(1000);
         System.out.println("Image processed: " + imageId);
     }

@@ -1,6 +1,5 @@
 package com.girdharshukla.jobqueue.controllers;
 
-import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
@@ -24,33 +23,46 @@ public class JobController {
 
     private final JobService jobService;
 
-    public JobController(JobService jobService){
+    public JobController(JobService jobService) {
         this.jobService = jobService;
     }
 
-    public record SubmitJobRequest(String type, JsonNode payload) {}
-    public record SubmitJobResponse(UUID id) {}
-    @PostMapping
-    public ResponseEntity<SubmitJobResponse> submit(@RequestBody SubmitJobRequest submitJobRequest){
-        UUID jobId = jobService.submitJob(submitJobRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body(new SubmitJobResponse(jobId));
+    public record SubmitJobRequest(String type, JsonNode payload, Integer maxAttempts) {
     }
-    
+
+    public record SubmitJobResponse(UUID id) {
+    }
+
+    @PostMapping
+    public ResponseEntity<?> submit(@RequestBody SubmitJobRequest submitJobRequest) {
+        try {
+            UUID jobId = jobService.submitJob(submitJobRequest);
+            return ResponseEntity.status(HttpStatus.CREATED).body(new SubmitJobResponse(jobId));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error");
+        }
+    }
+
     @GetMapping("/{id}")
-    public ResponseEntity<Job> getJob(@PathVariable UUID id){
+    public ResponseEntity<Job> getJob(@PathVariable UUID id) {
         Job job = jobService.getJobById(id);
-        if(job == null){
+        if (job == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
         return ResponseEntity.status(HttpStatus.OK).body(job);
     }
 
     @GetMapping
-    public List<Job> getAllJobs(@RequestParam(required = false) String status){
-        if(status == null){
-            return jobService.listAllJobs();
+    public ResponseEntity<?> getAllJobs(@RequestParam(required = false) String status) {
+        if (status == null) {
+            return ResponseEntity.status(HttpStatus.OK).body(jobService.listAllJobs());
         }
-        return jobService.getJobByStatus(JobStatus.valueOf(status));
+        try {
+            JobStatus stat = JobStatus.valueOf(status);
+            return ResponseEntity.status(HttpStatus.OK).body(jobService.getJobByStatus(stat));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid request");
+        }
     }
 
 }

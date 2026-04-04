@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -21,31 +22,31 @@ public class JobRepository implements RowMapper<Job> {
 
     @Override
     public Job mapRow(ResultSet rs, int rowNum) throws SQLException {
-        Job jobb = new Job();
-        jobb.setId(UUID.fromString(rs.getString("id")));
-        jobb.setType(rs.getString("type"));
+        Job job = new Job();
+        job.setId(UUID.fromString(rs.getString("id")));
+        job.setType(rs.getString("type"));
         try {
-            jobb.setPayload(objectMapper.readTree(rs.getString("payload")));
+            job.setPayload(objectMapper.readTree(rs.getString("payload")));
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
-        jobb.setStatus(JobStatus.valueOf(rs.getString("status")));
-        jobb.setAttempt(rs.getInt("attempt"));
-        jobb.setMaxAttempts(rs.getInt("max_attempts"));
-        jobb.setCreatedAt(rs.getTimestamp("created_at"));
-        jobb.setStartedAt(rs.getTimestamp("started_at"));
-        jobb.setFinishedAt(rs.getTimestamp("finished_at"));
+        job.setStatus(JobStatus.valueOf(rs.getString("status")));
+        job.setAttempt(rs.getInt("attempt"));
+        job.setMaxAttempts(rs.getInt("max_attempts"));
+        job.setCreatedAt(rs.getTimestamp("created_at"));
+        job.setStartedAt(rs.getTimestamp("started_at"));
+        job.setFinishedAt(rs.getTimestamp("finished_at"));
         String result = rs.getString("result");
         if (result != null) {
             try {
-                jobb.setResult(objectMapper.readTree(rs.getString("result")));
+                job.setResult(objectMapper.readTree(rs.getString("result")));
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
             }
         }
-        jobb.setError(rs.getString("error"));
+        job.setError(rs.getString("error"));
 
-        return jobb;
+        return job;
     }
 
     public JobRepository(JdbcTemplate jdbcTemplate) {
@@ -53,15 +54,25 @@ public class JobRepository implements RowMapper<Job> {
     }
 
     public void insert(Job job) {
-        String sql = "INSERT INTO jobs (id, type, payload, status, max_attempts) VALUES (?, ?, ?::jsonb, ?, ?)";
-        jdbcTemplate.update(sql, job.getId(), job.getType(), job.getPayload().toString(), job.getStatus().name(),
-                job.getMaxAttempts());
+
+        if (job.getMaxAttempts() == null) {
+            String sql = "INSERT INTO jobs (id, type, payload, status) VALUES (?, ?, ?::jsonb, ?)";
+            jdbcTemplate.update(sql, job.getId(), job.getType(), job.getPayload().toString(), job.getStatus().name());
+        } else {
+            String sql = "INSERT INTO jobs (id, type, payload, status, max_attempts) VALUES (?, ?, ?::jsonb, ?, ?)";
+            jdbcTemplate.update(sql, job.getId(), job.getType(), job.getPayload().toString(), job.getStatus().name(), job.getMaxAttempts());
+
+        }
+
     }
 
     public Job findById(UUID id) {
-        String sql = "SELECT * FROM jobs WHERE id = ?";
-        Job job = jdbcTemplate.queryForObject(sql, this, id);
-        return job;
+        try {
+            String sql = "SELECT * FROM jobs WHERE id = ?";
+            return jdbcTemplate.queryForObject(sql, this, id);
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
     }
 
     public void transition(UUID id, JobStatus status, String error) {
@@ -90,5 +101,10 @@ public class JobRepository implements RowMapper<Job> {
 
     public List<Job> getAllJobs() {
         return jdbcTemplate.query("SELECT * FROM jobs", this);
+    }
+
+    public List<Job> recoverJobs() {
+        jdbcTemplate.update("UPDATE jobs SET status = 'QUEUED' WHERE status = 'RUNNING'");
+        return jdbcTemplate.query("SELECT * FROM jobs WHERE status = 'QUEUED'", this);
     }
 }

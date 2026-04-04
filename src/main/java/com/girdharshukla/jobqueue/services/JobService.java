@@ -29,6 +29,7 @@ public class JobService {
         job.setType(request.type());
         job.setPayload(request.payload());
         job.setStatus(JobStatus.QUEUED);
+        job.setMaxAttempts(request.maxAttempts());
 
         jobRepository.insert(job);
 

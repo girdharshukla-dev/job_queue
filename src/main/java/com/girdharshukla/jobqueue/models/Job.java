@@ -14,7 +14,7 @@ public class Job {
     private JsonNode payload;
     private JobStatus status;
     private int attempt;
-    private int maxAttempts;
+    private Integer maxAttempts;
     private Timestamp createdAt;
     private Timestamp startedAt;
     private Timestamp finishedAt;
@@ -56,10 +56,10 @@ public class Job {
         return this.attempt;
     }
 
-    public void setMaxAttempts(int maxAttempts){
+    public void setMaxAttempts(Integer maxAttempts){
         this.maxAttempts = maxAttempts;
     }
-    public int getMaxAttempts(){
+    public Integer getMaxAttempts(){
         return this.maxAttempts;
     }
 
