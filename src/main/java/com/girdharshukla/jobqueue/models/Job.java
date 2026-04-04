@@ -56,10 +56,10 @@ public class Job {
         return this.attempt;
     }
 
-    public void setMaxAttempt(int maxAttempts){
+    public void setMaxAttempts(int maxAttempts){
         this.maxAttempts = maxAttempts;
     }
-    public int getMaxAttempt(){
+    public int getMaxAttempts(){
         return this.maxAttempts;
     }
 

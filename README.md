@@ -2,6 +2,7 @@ For secrets export these in your shell
 - DB_URL 
 - DB_USER
 - DB_PASSWORD
+- REDIS_URL
 
 Example assuming you spin up the docker compose:
 ```

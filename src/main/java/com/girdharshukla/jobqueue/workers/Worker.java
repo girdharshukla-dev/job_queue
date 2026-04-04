@@ -15,41 +15,50 @@ import io.lettuce.core.KeyValue;
 import io.lettuce.core.api.sync.RedisCommands;
 
 @Component
-public class Worker implements Runnable{
+public class Worker implements Runnable {
     private final RedisCommands<String, String> commands;
     private final JobRepository jobRepository;
     private final Map<String, JobHandler> handlers;
 
-    public Worker(@Qualifier("workerCommands") RedisCommands<String, String> commands, JobRepository jobRepository, Map<String, JobHandler> handlers){
+    public Worker(@Qualifier("workerCommands") RedisCommands<String, String> commands, JobRepository jobRepository,
+            Map<String, JobHandler> handlers) {
         this.commands = commands;
         this.jobRepository = jobRepository;
         this.handlers = handlers;
     }
 
     @Override
-    public void run(){
-        while(true){
+    public void run() {
+        while (true) {
             KeyValue<String, String> ans = commands.brpop(0, "jobs_queue");
+            if (ans == null){
+                continue;
+            }
             String jobId = ans.getValue();
-            System.out.println("Picked something in Worker: " + jobId);
             UUID id = UUID.fromString(jobId);
             Job job = jobRepository.findById(id);
-            System.out.println("Job type from db: " + job.getType());
-            System.out.println("Handlers available:" + handlers.keySet());
+            if (job == null) {
+                continue;
+            }
             JobHandler handler = handlers.get(job.getType());
-            if(handler == null){
+            if (handler == null) {
                 jobRepository.transition(id, JobStatus.FAILED, "Unknown job type");
                 continue;
             }
             jobRepository.transition(id, JobStatus.RUNNING, null);
-            try{
+            try {
                 handler.execute(job.getPayload());
                 jobRepository.transition(id, JobStatus.SUCCESS, null);
-            }catch(Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
-                jobRepository.transition(id, JobStatus.FAILED, e.getMessage());
+                if (job.getAttempt() + 1 < job.getMaxAttempts()) {
+                    jobRepository.transition(id, JobStatus.QUEUED, e.getMessage());
+                    commands.lpush("jobs_queue", id.toString());
+                } else {
+                    jobRepository.transition(id, JobStatus.FAILED, "Max attempts reached");
+                }
             }
-            
+
         }
     }
 }
