@@ -32,8 +32,7 @@ public class JobService {
 
         jobRepository.insert(job);
 
-        Long result = commands.lpush("jobs_queue", jobId.toString());
-        System.out.println("lpush result in jobService: " + result);
+        commands.lpush("jobs_queue", jobId.toString());
         return jobId;
     }
 

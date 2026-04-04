@@ -35,10 +35,13 @@ public class JobRepository implements RowMapper<Job> {
         jobb.setCreatedAt(rs.getTimestamp("created_at"));
         jobb.setStartedAt(rs.getTimestamp("started_at"));
         jobb.setFinishedAt(rs.getTimestamp("finished_at"));
-        try {
-            jobb.setResult(objectMapper.readTree(rs.getString("result")));
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
+        String result = rs.getString("result");
+        if (result != null) {
+            try {
+                jobb.setResult(objectMapper.readTree(rs.getString("result")));
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
         }
         jobb.setError(rs.getString("error"));
 
@@ -80,12 +83,12 @@ public class JobRepository implements RowMapper<Job> {
         }
     }
 
-    public List<Job> findByStatus(JobStatus status){
+    public List<Job> findByStatus(JobStatus status) {
         String sql = "SELECT * FROM jobs WHERE status = ?";
         return jdbcTemplate.query(sql, this, status.name());
     }
 
-    public List<Job> getAllJobs(){
+    public List<Job> getAllJobs() {
         return jdbcTemplate.query("SELECT * FROM jobs", this);
     }
 }

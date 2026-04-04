@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -45,7 +46,7 @@ public class JobController {
     }
 
     @GetMapping
-    public List<Job> getAllJobs(@PathVariable(required = false) String status){
+    public List<Job> getAllJobs(@RequestParam(required = false) String status){
         if(status == null){
             return jobService.listAllJobs();
         }

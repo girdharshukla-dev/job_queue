@@ -31,7 +31,7 @@ public class Worker implements Runnable {
     public void run() {
         while (true) {
             KeyValue<String, String> ans = commands.brpop(0, "jobs_queue");
-            if (ans == null){
+            if (ans == null) {
                 continue;
             }
             String jobId = ans.getValue();
