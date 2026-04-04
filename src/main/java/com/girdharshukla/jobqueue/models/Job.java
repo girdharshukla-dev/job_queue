@@ -1,6 +1,6 @@
 package com.girdharshukla.jobqueue.models;
 
-import java.time.Instant;
+import java.sql.Timestamp;
 import java.util.UUID;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -15,9 +15,9 @@ public class Job {
     private JobStatus status;
     private int attempt;
     private int maxAttempts;
-    private Instant createdAt;
-    private Instant startedAt;
-    private Instant finishedAt;
+    private Timestamp createdAt;
+    private Timestamp startedAt;
+    private Timestamp finishedAt;
     private JsonNode result;
     private String error;
 
@@ -63,24 +63,24 @@ public class Job {
         return this.maxAttempts;
     }
 
-    public void setCreatedAt(Instant createdAt){
+    public void setCreatedAt(Timestamp createdAt){
         this.createdAt = createdAt;
     }
-    public Instant getCreatedAt(){
+    public Timestamp getCreatedAt(){
         return this.createdAt;
     }
 
-    public void setFinishedAt(Instant finishedAt){
+    public void setFinishedAt(Timestamp finishedAt){
         this.finishedAt = finishedAt;
     }
-    public Instant getFinishedAt(){
+    public Timestamp getFinishedAt(){
         return this.finishedAt;
     }
 
-    public void setStartedAt(Instant startedAt){
+    public void setStartedAt(Timestamp startedAt){
         this.startedAt = startedAt;
     }
-    public Instant getStartedAt(){
+    public Timestamp getStartedAt(){
         return this.startedAt;
     }
 

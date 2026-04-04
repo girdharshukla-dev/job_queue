@@ -1,5 +1,6 @@
 package com.girdharshukla.jobqueue.services;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -34,5 +35,18 @@ public class JobService {
         Long result = commands.lpush("jobs_queue", jobId.toString());
         System.out.println("lpush result in jobService: " + result);
         return jobId;
+    }
+
+    public Job getJobById(UUID jobId){
+        Job job = jobRepository.findById(jobId);
+        return job;
+    }
+
+    public List<Job> getJobByStatus(JobStatus status){
+        return jobRepository.findByStatus(status);
+    }
+
+    public List<Job> listAllJobs(){
+        return jobRepository.getAllJobs();
     }
 }
